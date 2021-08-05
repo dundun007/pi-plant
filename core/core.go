@@ -1,28 +1,30 @@
 package main
 
 import (
-        "time"
+	"fmt"
+	"time"
 
-        "gobot.io/x/gobot"
-        "gobot.io/x/gobot/drivers/spi"
-        "gobot.io/x/gobot/platforms/raspi"
+	"gobot.io/x/gobot"
+	"gobot.io/x/gobot/drivers/spi"
+	"gobot.io/x/gobot/platforms/raspi"
 )
 
 func main() {
-        r := raspi.NewAdaptor()
-        d := spi.NewMCP3008(r)
-        work := func() {
-                gobot.Every(1*time.Second, func() {
-                    output := d.Read(0)
-                    print(output)
-                })
-        }
+	a := raspi.NewAdaptor()
+	adc := spi.NewMCP3008Driver(a)
 
-        robot := gobot.NewRobot("pi-plant",
-                []gobot.Connection{r},
-                []gobot.Device{led},
-                work,
-        )
+	work := func() {
+		gobot.Every(100*time.Millisecond, func() {
+			result, err := adc.Read(0)
+			fmt.Println("A0", result, err)
+		})
+	}
 
-        robot.Start()
+	robot := gobot.NewRobot("mcp3008bot",
+		[]gobot.Connection{a},
+		[]gobot.Device{adc},
+		work,
+	)
+
+	robot.Start()
 }
